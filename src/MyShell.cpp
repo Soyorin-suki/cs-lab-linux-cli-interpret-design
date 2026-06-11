@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <sys/wait.h>
 #include "Builtin.hpp"
+#include "Alias.hpp"
 using std::string;
 using std::vector;
 
@@ -14,6 +15,7 @@ MyShell::~MyShell(){}
 
 void MyShell::init(){
 	Builtin::init();
+	Alias::init();
 }
 string MyShell::get_pwd(){
 	char buf[4096];
@@ -66,7 +68,7 @@ vector<string> MyShell::split_line(const string&line){
 	if(!token.empty()){
 		args.push_back(token);
 	}
-	return args;
+	return Alias::replace(args);
 }
 
 int MyShell::execute(const vector<string>&args){

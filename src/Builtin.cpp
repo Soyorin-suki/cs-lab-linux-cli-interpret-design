@@ -12,6 +12,7 @@ std::unordered_map<
 void Builtin::init(){
 	commands["cd"]=buildin_cd;
 	commands["exit"]=buildin_exit;
+	commands["help"]=buildin_help;
 }
 
 int buildin_cd(const std::vector<std::string>&args){
@@ -28,6 +29,11 @@ int buildin_cd(const std::vector<std::string>&args){
 
 int buildin_exit(const std::vector<std::string>&args){
 	return 1;
+}
+
+int buildin_help(const std::vector<std::string>&args){
+	std::cout<<"这是Anon_chan制作的whut课设: mini-linux-shell\n";
+	return 0;
 }
 
 int Builtin::execute(const std::string &func_name, const std::vector<std::string>&args){

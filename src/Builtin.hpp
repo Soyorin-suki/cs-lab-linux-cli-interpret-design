@@ -23,3 +23,4 @@ public:
 
 int buildin_cd(const std::vector<std::string>&args);
 int buildin_exit(const std::vector<std::string>&args);
+int buildin_help(const std::vector<std::string>&args);
