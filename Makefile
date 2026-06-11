@@ -5,7 +5,7 @@ SRC = src/main.cpp src/MyShell.cpp src/MyShell.hpp src/Builtin.hpp src/Builtin.c
 
 $(TARGET):
 	mkdir -p $(BIN_DIR)
-	g++ $(SRC) -o $(BIN_DIR)/user-sh
+	g++ $(SRC) -Wall -o $(BIN_DIR)/user-sh
 
 clean:
 	rm -f $(TARGET)

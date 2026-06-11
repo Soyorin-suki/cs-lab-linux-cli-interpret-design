@@ -15,8 +15,20 @@ MyShell::~MyShell(){}
 void MyShell::init(){
 	Builtin::init();
 }
+string MyShell::get_pwd(){
+	char buf[4096];
+	getcwd(buf,sizeof(buf));
+	string pwd(buf);
+	return pwd;
+}
 
-
+string MyShell::get_prompt(){
+	string prompt;
+	prompt+="[user-sh]";
+	prompt+=get_pwd();
+	prompt+="$ ";
+	return prompt;
+}
 
 void MyShell::loop(){
 	string line;
@@ -24,7 +36,7 @@ void MyShell::loop(){
 	int status;
 
 	do {
-		printf("> ");
+		std::cout<<get_prompt();
 		line=read_line();
 		args=split_line(line);
 		status=execute(args);

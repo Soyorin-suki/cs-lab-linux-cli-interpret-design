@@ -1,4 +1,7 @@
 #include "Builtin.hpp"
+#include <unistd.h>
+#include <iostream>
+
 
 std::unordered_map<
     std::string,
@@ -12,6 +15,14 @@ void Builtin::init(){
 }
 
 int buildin_cd(const std::vector<std::string>&args){
+	if(args.size()<2){
+		std::cerr<<"cd: 参数过少!\n";
+		return 2;
+	}
+	if(chdir(args[1].c_str())!=0){
+		perror("cd");
+		return 1;
+	}
 	return 0;
 }
 
