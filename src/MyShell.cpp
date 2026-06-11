@@ -4,6 +4,7 @@
 #include <iostream>
 #include <unistd.h>
 #include <sys/wait.h>
+#include "Builtin.hpp"
 using std::string;
 using std::vector;
 
@@ -11,7 +12,9 @@ using std::vector;
 MyShell::MyShell(){}
 MyShell::~MyShell(){}
 
-
+void MyShell::init(){
+	Builtin::init();
+}
 
 
 
@@ -58,6 +61,16 @@ int MyShell::execute(const vector<string>&args){
 	int status=1;
 	if(args.empty())return status;
 	pid_t pid,wpid;
+	// check是否是内置命令
+	status = Builtin::execute(args[0],args);
+	if(status==0){
+		return 1;
+	}else if(status==1){
+		return 0;
+	}else if(status==2){
+		return 1;
+	}
+
 	vector<char*>argv;
 	for(auto&arg:args){
 		argv.push_back(const_cast<char*>(arg.c_str()));

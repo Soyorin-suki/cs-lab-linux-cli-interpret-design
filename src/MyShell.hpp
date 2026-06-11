@@ -9,6 +9,7 @@ private:
 	int execute(const std::vector<std::string> &args);
 
 public:
+	void init();
 	MyShell();
 	~MyShell();
 	void loop();

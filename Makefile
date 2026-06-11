@@ -1,7 +1,7 @@
 BIN_DIR = bin
 TARGET = user-sh
 
-SRC = src/main.cpp src/MyShell.cpp src/MyShell.hpp
+SRC = src/main.cpp src/MyShell.cpp src/MyShell.hpp src/Builtin.hpp src/Builtin.cpp
 
 $(TARGET):
 	mkdir -p $(BIN_DIR)
