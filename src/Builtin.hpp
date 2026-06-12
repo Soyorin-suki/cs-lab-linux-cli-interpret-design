@@ -21,6 +21,7 @@ public:
 	
 };
 
-int buildin_cd(const std::vector<std::string>&args);
-int buildin_exit(const std::vector<std::string>&args);
-int buildin_help(const std::vector<std::string>&args);
+int builtin_cd(const std::vector<std::string>&args);
+int builtin_exit(const std::vector<std::string>&args);
+int builtin_help(const std::vector<std::string>&args);
+int builtin_history(const std::vector<std::string>&args);

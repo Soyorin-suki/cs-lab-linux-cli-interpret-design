@@ -4,6 +4,7 @@
 #include <iostream>
 #include <unistd.h>
 #include <sys/wait.h>
+#include "History.hpp"
 #include "Builtin.hpp"
 #include "Alias.hpp"
 using std::string;
@@ -50,6 +51,7 @@ const int BUF_MAX_SIZE = 1024;
 string MyShell::read_line(){
 	string line;
 	std::getline(std::cin, line);
+	History::push(line);
 	return line;
 }
 vector<string> MyShell::split_line(const string&line){

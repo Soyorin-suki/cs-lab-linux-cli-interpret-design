@@ -1,4 +1,6 @@
 #include "Builtin.hpp"
+#include "History.hpp"
+#include "Alias.hpp"
 #include <unistd.h>
 #include <iostream>
 
@@ -10,12 +12,13 @@ std::unordered_map<
 
 
 void Builtin::init(){
-	commands["cd"]=buildin_cd;
-	commands["exit"]=buildin_exit;
-	commands["help"]=buildin_help;
+	commands["cd"]=builtin_cd;
+	commands["exit"]=builtin_exit;
+	commands["help"]=builtin_help;
+	commands["history"]=builtin_history;
 }
 
-int buildin_cd(const std::vector<std::string>&args){
+int builtin_cd(const std::vector<std::string>&args){
 	if(args.size()<2){
 		std::cerr<<"cd: 参数过少!\n";
 		return 2;
@@ -27,12 +30,21 @@ int buildin_cd(const std::vector<std::string>&args){
 	return 0;
 }
 
-int buildin_exit(const std::vector<std::string>&args){
+int builtin_exit(const std::vector<std::string>&args){
 	return 1;
 }
 
-int buildin_help(const std::vector<std::string>&args){
-	std::cout<<"这是Anon_chan制作的whut课设: mini-linux-shell\n";
+int builtin_help(const std::vector<std::string>&args){
+	std::cout<<"这是soyorin-suki制作的whut课设: mini-linux-shell\n";
+	return 0;
+}
+
+
+int builtin_history(const std::vector<std::string>&args){
+	auto history = History::get_history();
+	for(size_t i=0;i<history.size();++i){
+		std::cout<<"\t"<<i+1<<"\t"<<history[i]<<'\n';
+	}
 	return 0;
 }
 
