@@ -127,10 +127,96 @@ int MyShell::execute_ast(const parser::ASTNode* node){
 		return left_rc;                     // 左边成功 → 短路，不执行右边
 	}
 
-	// ──────── 管道：暂未实现 ────────
-	case parser::ASTType::PIPE:
-		std::cout << "暂未实现：管道 (|) 功能\n";
-		return 1;  // 非零表示"失败"，但不退出
+	// ──────── 管道 | ────────
+	//
+	// 核心思想：
+	//   1. pipe() 创建内核缓冲区，返回一对 fd（读端 fd[0]、写端 fd[1]）
+	//   2. fork 左子进程：dup2(fd[1], STDOUT) → 标准输出"流入"管道写端
+	//   3. fork 右子进程：dup2(fd[0], STDIN)  → 标准输入"取自"管道读端
+	//   4. 父进程必须关闭管道两端（否则读端永远等不到 EOF → 死锁）
+	//   5. 父进程等待左右子进程都结束
+	//   6. 返回右子进程退出码（bash 惯例）
+	//
+	// 嵌套管道处理：左子树可能自身也是 PIPE 节点，通过递归 execute_ast 自然支持。
+	//   例如 PIPE(PIPE(A,B), C)：外层 PIPE 的左侧子进程会递归创建内层管道。
+	//
+	// 内置命令在管道中的行为：
+	//   cd、exit 等内置命令在子进程中执行，不影响父 shell（与 bash 一致）
+	case parser::ASTType::PIPE: {
+		// ── 1. 创建管道 ──
+		int pipe_fd[2];
+		if (pipe(pipe_fd) == -1) {
+			perror("MyShell: pipe 创建失败");
+			return 1;
+		}
+
+		// ── 2. fork 左子进程（写入端） ──
+		pid_t left_pid = fork();
+		if (left_pid == -1) {
+			perror("MyShell: fork 失败");
+			close(pipe_fd[0]);
+			close(pipe_fd[1]);
+			return 1;
+		}
+		if (left_pid == 0) {
+			// ===== 左子进程 =====
+			// 将标准输出重定向到管道写端
+			dup2(pipe_fd[1], STDOUT_FILENO);
+			// 关闭管道两端（已经 dup2 过了，原始 fd 不再需要）
+			close(pipe_fd[0]);
+			close(pipe_fd[1]);
+			// 递归执行左侧 AST（可能是 CMD 或嵌套 PIPE）
+			int rc = execute_ast(node->left.get());
+			// -1 表示 exit 命令，在管道子进程中转为普通退出码 1
+			if (rc == -1) rc = 1;
+			exit(rc);
+		}
+
+		// ── 3. fork 右子进程（读取端） ──
+		pid_t right_pid = fork();
+		if (right_pid == -1) {
+			perror("MyShell: fork 失败");
+			close(pipe_fd[0]);
+			close(pipe_fd[1]);
+			// 回收左侧子进程，防止僵尸
+			int dummy;
+			waitpid(left_pid, &dummy, 0);
+			return 1;
+		}
+		if (right_pid == 0) {
+			// ===== 右子进程 =====
+			// 将标准输入重定向到管道读端
+			dup2(pipe_fd[0], STDIN_FILENO);
+			// 关闭管道两端
+			close(pipe_fd[0]);
+			close(pipe_fd[1]);
+			// 递归执行右侧 AST
+			int rc = execute_ast(node->right.get());
+			if (rc == -1) rc = 1;
+			exit(rc);
+		}
+
+		// ── 4. 父进程：关闭管道两端（关键！） ──
+		// 父进程不参与管道 I/O，必须关闭两端的 fd。
+		// 否则：当左侧写进程退出后，父进程还持有写端 → 右侧读端永远等不到 EOF → 死锁。
+		close(pipe_fd[0]);
+		close(pipe_fd[1]);
+
+		// ── 5. 等待左右子进程都结束 ──
+		int left_status, right_status;
+		waitpid(left_pid,  &left_status,  0);
+		waitpid(right_pid, &right_status, 0);
+
+		// ── 6. 返回右侧退出码（bash 惯例：管道的退出码 = 最后一个命令的退出码） ──
+		if (WIFEXITED(right_status)) {
+			return WEXITSTATUS(right_status);
+		}
+		// 右侧被信号杀死（如 SIGPIPE、SIGKILL）
+		if (WIFSIGNALED(right_status)) {
+			return 128 + WTERMSIG(right_status);   // 惯例：128 + 信号编号
+		}
+		return 1;
+	}
 	}
 
 	return 0;
