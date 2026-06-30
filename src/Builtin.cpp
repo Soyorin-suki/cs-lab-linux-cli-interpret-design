@@ -46,6 +46,12 @@ int builtin_exit(const std::vector<std::string>& args) {
 
 int builtin_help(const std::vector<std::string>& args) {
 	std::cout << "这是soyorin-suki制作的whut课设: mini-linux-shell\n";
+	std::cout << "目前支持以下功能：\n";
+	std::cout << "1. 外部命令调用\n";
+	std::cout << "2. 内部builtin命令调用\n";
+	std::cout << "3. 管道功能\n";
+	std::cout << "4. 逻辑AND和逻辑OR\n";
+	std::cout << "键入 exit 退出\n";
 	return 0;
 }
 

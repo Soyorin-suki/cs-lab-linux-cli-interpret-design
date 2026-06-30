@@ -138,6 +138,12 @@ void Parser::Lexer::load_next() {
         return;
     }
 
+    // ── 双引号字符串（支持转义） ──
+    if (c == '"') {
+        current_ = read_quoted_string();
+        return;
+    }
+
     // ── 普通字符串 ──
     current_ = read_string();
 }
@@ -155,6 +161,49 @@ Token Parser::Lexer::read_string() {
         value += c;
         ++pos_;
     }
+    return Token{TokenType::STRING, value};
+}
+
+Token Parser::Lexer::read_quoted_string() {
+    // 跳过开头的双引号
+    ++pos_;  // 消费 '"'
+
+    std::string value;
+    while (pos_ < input_.size()) {
+        char c = input_[pos_];
+
+        // 遇到闭合引号 → 结束，跳过它
+        if (c == '"') {
+            ++pos_;
+            return Token{TokenType::STRING, value};
+        }
+
+        // 处理转义字符
+        if (c == '\\' && pos_ + 1 < input_.size()) {
+            ++pos_;  // 跳过反斜杠
+            char next = input_[pos_];
+            switch (next) {
+                case '"':  value += '"';  break;   // \" -> "
+                case '\\': value += '\\'; break;   // \\ -> (反斜杠)
+                case 'n':  value += '\n'; break;   // \n -> 换行
+                case 't':  value += '\t'; break;   // \t -> 制表符
+                case 'r':  value += '\r'; break;   // \r -> 回车
+                default:
+                    // 未知转义序列，保留原样（如 \a → \a）
+                    value += '\\';
+                    value += next;
+                    break;
+            }
+            ++pos_;
+            continue;
+        }
+
+        // 普通字符
+        value += c;
+        ++pos_;
+    }
+
+    // 引号未闭合 → 把已读取的内容作为字符串返回（容错）
     return Token{TokenType::STRING, value};
 }
 

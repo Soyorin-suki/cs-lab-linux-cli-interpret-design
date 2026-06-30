@@ -73,6 +73,9 @@ public:
         /// 读取一个 STRING Token（直到遇到空白或操作符）
         Token read_string();
 
+        /// 读取双引号包裹的字符串 "..."（处理转义，不含引号本身）
+        Token read_quoted_string();
+
         /// 输入当前位置字符，越界返回 '\0'
         char cur_char() const;
     };
