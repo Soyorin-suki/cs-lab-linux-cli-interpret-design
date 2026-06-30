@@ -1,12 +1,13 @@
 #pragma once
-#include<string>
-#include<vector>
+#include <string>
+#include <vector>
+#include "parser/AST.hpp"
 
-class MyShell{
+class MyShell {
 private:
 	std::string read_line();
-	std::vector<std::string> split_line(const std::string &line);
-	int execute(const std::vector<std::string> &args);
+	int execute_ast(const parser::ASTNode* node);
+	int execute_cmd(const parser::ASTNode* node);
 	std::string get_pwd();
 	std::string get_prompt();
 
